@@ -10,6 +10,7 @@
       "DOM",
       "DOM.Iterable"
     ],
+    "allowJs": true,
     "skipLibCheck": true,
     "paths": {
       "@app/*": [

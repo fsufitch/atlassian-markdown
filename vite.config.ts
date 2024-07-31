@@ -7,7 +7,7 @@ export default defineConfig({
     alias: {
       '@app': '/src',
     },
-    // extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json', '.css'],
+    extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json', '.css'],
   },
   plugins: [vue()],
 })
