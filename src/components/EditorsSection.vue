@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import PreviewViewer from "@app/components/PreviewViewer.vue";
-import { mdPreviewHTML, mdRawHTML } from "@app/markdown";
+import { convertMarkdownToAtlassian, mdPreviewHTML, mdRawHTML } from "@app/markdown";
 import { ref, watch, watchEffect } from "vue";
 import RawHTMLViewer from "@app/components/RawHTMLViewer.vue";
 import { useDisplay } from "vuetify";
@@ -18,7 +18,7 @@ watch([activeTab, editorMarkdown], ([tab, md]) => {
       renderedContent.value = mdRawHTML.render(md);
       break;
     case "atlassian":
-      renderedContent.value = "TODO";
+      renderedContent.value = convertMarkdownToAtlassian(md);
       break;
     default:
       console.error("unknown active tab", activeTab.value);
