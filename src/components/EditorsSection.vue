@@ -1,29 +1,20 @@
 <script setup lang="ts">
-import PreviewViewer from "@app/components/PreviewViewer.vue";
-import { convertMarkdownToAtlassian, mdPreviewHTML, mdRawHTML } from "@app/markdown";
-import { ref, watch, watchEffect } from "vue";
-import RawHTMLViewer from "@app/components/RawHTMLViewer.vue";
+import { ref, watchEffect } from "vue";
 import { useDisplay } from "vuetify";
+import PreviewRendererCard from "@app/components/PreviewRendererCard.vue";
+import { useLocalStorage } from "@vueuse/core";
+import ASTRendererCard from "@app/components/ASTRendererCard.vue";
+import RawHTMLRendererCard from "@app/components/RawHTMLRendererCard.vue";
+import AtlassianRendererCard from "@app/components/AtlassianRendererCard.vue";
 
-const activeTab = ref<string>("preview");
-const editorMarkdown = ref<string>("");
-const renderedContent = ref<string>("");
+const EDITOR_TAB = "editor-tab";
+const activeTab = useLocalStorage<"preview" | "atlassian" | "html" | "ast">(
+  EDITOR_TAB,
+  "preview",
+);
 
-watch([activeTab, editorMarkdown], ([tab, md]) => {
-  switch (tab) {
-    case "preview":
-      renderedContent.value = mdPreviewHTML.render(md);
-      break;
-    case "raw-html":
-      renderedContent.value = mdRawHTML.render(md);
-      break;
-    case "atlassian":
-      renderedContent.value = convertMarkdownToAtlassian(md);
-      break;
-    default:
-      console.error("unknown active tab", activeTab.value);
-  }
-});
+const EDITOR_CONTENT = "editor-content";
+const editorMarkdown = useLocalStorage(EDITOR_CONTENT, "");
 
 const mdAutoGrow = ref<boolean>(false);
 const mdMaxRows = ref<number | undefined>(undefined);
@@ -65,28 +56,30 @@ watchEffect(() => {
       <VTabs v-model="activeTab" direction="horizontal">
         <VTab value="preview"> Preview </VTab>
         <VTab value="atlassian"> Atlassian </VTab>
-        <VTab value="raw-html"> Raw HTML </VTab>
+        <VTab value="html"> Raw HTML </VTab>
+        <VTab value="ast"> AST </VTab>
       </VTabs>
 
-      <VCard class="flex-grow-1 overflow-auto">
-        <VCardText>
-          <VTabsWindow
-            v-model="activeTab"
-            direction="horizontal"
-            class="flex-grow-1 d-flex flex-column"
-          >
-            <VTabsWindowItem class="flex-grow-1" value="raw-html">
-              <RawHTMLViewer :html="renderedContent" />
-            </VTabsWindowItem>
-            <VTabsWindowItem class="flex-grow-1" value="preview">
-              <PreviewViewer :html="renderedContent" />
-            </VTabsWindowItem>
-            <VTabsWindowItem class="flex-grow-1" value="atlassian">
-              <RawHTMLViewer :html="renderedContent" />
-            </VTabsWindowItem>
-          </VTabsWindow>
-        </VCardText>
-      </VCard>
+      <VDivider />
+
+      <VTabsWindow
+        v-model="activeTab"
+        direction="horizontal"
+        class="flex-grow-1 d-flex flex-column"
+      >
+        <VTabsWindowItem class="flex-grow-1" value="preview">
+          <PreviewRendererCard :markdown="editorMarkdown"/>
+        </VTabsWindowItem>
+        <VTabsWindowItem class="flex-grow-1" value="atlassian">
+          <AtlassianRendererCard :markdown="editorMarkdown" />
+        </VTabsWindowItem>
+        <VTabsWindowItem class="flex-grow-1" value="html">
+          <RawHTMLRendererCard :markdown="editorMarkdown" />
+        </VTabsWindowItem>
+        <VTabsWindowItem class="flex-grow-1" value="ast">
+          <ASTRendererCard :markdown="editorMarkdown" />
+        </VTabsWindowItem>
+      </VTabsWindow>
     </VCol>
   </VRow>
 </template>
@@ -97,7 +90,7 @@ watchEffect(() => {
   // overflow-y: auto;
 
   textarea {
-    height: 100%
+    height: 100%;
   }
 }
 </style>

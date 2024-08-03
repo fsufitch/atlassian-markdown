@@ -1,6 +1,7 @@
 {
   "recommendations": [
     "rvest.vs-code-prettier-eslint",
-    "dbaeumer.vscode-eslint"
+    "dbaeumer.vscode-eslint",
+    "vue.volar"
   ]
 }
