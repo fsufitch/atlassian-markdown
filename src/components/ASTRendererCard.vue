@@ -7,7 +7,7 @@ import YAML from "yaml";
 
 import hljs from "highlight.js/lib/common";
 import CopyButton from "./CopyButton.vue";
-import { mdiAlarm } from "@mdi/js";
+import { mdiAlarm, mdiCloseCircle } from "@mdi/js";
 const hljsYAML = import("highlight.js/lib/languages/yaml").then(
   (it) => it.default,
 );
@@ -80,7 +80,7 @@ watchEffect(async () => {
 
     <VCardText>
       <VSkeletonLoader v-if="loading" type="text" />
-      <VAlert v-if="error" :icon="mdiAlarm" color="error">
+      <VAlert v-if="error" :icon="mdiCloseCircle" color="error">
         <strong>ERROR:</strong> {{ error }}
       </VAlert>
       <code>
