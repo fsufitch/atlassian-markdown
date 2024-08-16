@@ -2,11 +2,13 @@
 import EditorsSection from "@app/components/EditorsSection.vue";
 import TopInfo from "@app/components/TopInfo.vue";
 import { useLocalStorage, useStyleTag } from "@vueuse/core";
-import { watch, watchEffect } from "vue";
+import { watchEffect } from "vue";
 import { useTheme } from "vuetify";
 import { VApp, VCol, VContainer } from "vuetify/components";
-const lightThemeCSS = import("highlight.js/styles/github.css?inline");
-const darkThemeCSS = import("highlight.js/styles/github-dark.css?inline");
+
+
+const getLightThemeCSS = () => import("highlight.js/styles/github.css?inline").then(it => it.default);
+const getDarkThemeCSS = () => import("highlight.js/styles/github-dark.css?inline").then(it => it.default);
 
 const STORAGE_THEME = "theme";
 type ThemeName = "light" | "dark";
@@ -32,20 +34,15 @@ watchEffect(() => {
   vuetifyTheme.global.name.value = currentThemeName.value;
 });
 
-
-watchEffect(() => {
+watchEffect(async () => {
   switch (vuetifyTheme.global.name.value) {
     case "light":
       currentThemeName.value = "light";
-      lightThemeCSS
-        .then((it) => it.default)
-        .then((css) => (themeStyleTag.css.value = css));
+      themeStyleTag.css.value = await getLightThemeCSS();
       break;
     case "dark":
       currentThemeName.value = "dark";
-      darkThemeCSS
-        .then((it) => it.default)
-        .then((css) => (themeStyleTag.css.value = css));
+      themeStyleTag.css.value = await getDarkThemeCSS();
       break;
   }
 });
