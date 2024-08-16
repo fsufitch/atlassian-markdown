@@ -25,6 +25,10 @@ export abstract class ASTNode {
     }
   }
 
+  contentsHTML = () => (this.children ?? []).map((it) => it.toHTML()).join("");
+  contentsAtlassian = () =>
+    (this.children ?? []).map((it) => it.toAtlassian()).join("");
+
   abstract toHTML(): string;
   abstract toAtlassian(): string;
   toJSON = (): ASTJSON => ({
@@ -43,3 +47,4 @@ export abstract class SelfClosingNode extends ASTNode {
     return this.openToken;
   }
 }
+

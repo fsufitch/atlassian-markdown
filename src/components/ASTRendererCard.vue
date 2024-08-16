@@ -7,7 +7,7 @@ import YAML from "yaml";
 
 import hljs from "highlight.js/lib/common";
 import CopyButton from "./CopyButton.vue";
-import { mdiAlarm, mdiCloseCircle } from "@mdi/js";
+import { mdiCloseCircle } from "@mdi/js";
 const hljsYAML = import("highlight.js/lib/languages/yaml").then(
   (it) => it.default,
 );

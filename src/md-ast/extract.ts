@@ -1,24 +1,9 @@
 import type MarkdownToken from "markdown-it/lib/token.mjs";
-import { INLINE, InlineNode } from "./inline";
-import { HorizontalRuleNode, HR } from "./hr";
-import { CODE_BLOCK, CodeBlockNode, FENCE } from "./code-block";
+
 import { ASTNode } from "./base";
-import { PARAGRAPH_CLOSE, PARAGRAPH_OPEN, ParagraphNode } from "./paragraph";
-import {
-  BLOCKQUOTE_CLOSE,
-  BLOCKQUOTE_OPEN,
-  BlockQuoteNode,
-} from "./blockquote";
-import {
-  BULLET_LIST_CLOSE,
-  BULLET_LIST_OPEN,
-  BulletListNode,
-  LIST_ITEM_CLOSE,
-  LIST_ITEM_OPEN,
-  ListItemNode,
-  ORDERED_LIST_OPEN,
-  OrderedListNode,
-} from "./list";
+
+import * as Blocks from "./blocks";
+import * as Inlines from "./inlines";
 
 export const extractASTNode = (
   tokens: MarkdownToken[],
@@ -31,80 +16,178 @@ export const extractASTNode = (
 
     switch (openToken.type) {
       // First, self-closers
-      case INLINE:
-        return { node: new InlineNode(openToken), nextIndex: index + 1 };
-      case HR:
+      case Blocks.INLINE:
+        children = extractAST(openToken.children ?? []);
         return {
-          node: new HorizontalRuleNode(openToken),
+          node: new Blocks.InlineContainerNode(openToken, children),
           nextIndex: index + 1,
         };
-      case CODE_BLOCK:
-      case FENCE:
-        return { node: new CodeBlockNode(openToken), nextIndex: index + 1 };
+      case Blocks.HR:
+        return {
+          node: new Blocks.HorizontalRuleNode(openToken),
+          nextIndex: index + 1,
+        };
+      case Blocks.CODE_BLOCK:
+      case Blocks.FENCE:
+        return {
+          node: new Blocks.CodeBlockNode(openToken),
+          nextIndex: index + 1,
+        };
 
       // Then, containers
-      case PARAGRAPH_OPEN:
+      case Blocks.PARAGRAPH_OPEN:
         ({ children, nextIndex: closeIndex } = extractASTChildren(
           tokens,
           index + 1,
-          (i) => tokens[i].type !== PARAGRAPH_CLOSE,
+          (i) => tokens[i].type !== Blocks.PARAGRAPH_CLOSE,
         ));
         return {
-          node: new ParagraphNode(openToken, tokens[closeIndex], children),
+          node: new Blocks.ParagraphNode(
+            openToken,
+            tokens[closeIndex],
+            children,
+          ),
           nextIndex: closeIndex + 1,
         };
 
-      case BLOCKQUOTE_OPEN:
+      case Blocks.BLOCKQUOTE_OPEN:
         ({ children, nextIndex: closeIndex } = extractASTChildren(
           tokens,
           index + 1,
-          (i) => tokens[i].type !== BLOCKQUOTE_CLOSE,
+          (i) => tokens[i].type !== Blocks.BLOCKQUOTE_CLOSE,
         ));
         return {
-          node: new BlockQuoteNode(openToken, tokens[closeIndex], children),
+          node: new Blocks.BlockQuoteNode(
+            openToken,
+            tokens[closeIndex],
+            children,
+          ),
           nextIndex: closeIndex + 1,
         };
 
-      case BULLET_LIST_OPEN:
+      case Blocks.BULLET_LIST_OPEN:
         ({ children, nextIndex: closeIndex } = extractASTChildren(
           tokens,
           index + 1,
-          (i) => tokens[i].type !== BULLET_LIST_CLOSE,
+          (i) => tokens[i].type !== Blocks.BULLET_LIST_CLOSE,
         ));
         return {
-          node: new BulletListNode(openToken, tokens[closeIndex], children),
+          node: new Blocks.BulletListNode(
+            openToken,
+            tokens[closeIndex],
+            children,
+          ),
           nextIndex: closeIndex + 1,
         };
 
-      case ORDERED_LIST_OPEN:
+      case Blocks.ORDERED_LIST_OPEN:
         ({ children, nextIndex: closeIndex } = extractASTChildren(
           tokens,
           index + 1,
-          (i) => tokens[i].type !== ORDERED_LIST_OPEN,
+          (i) => tokens[i].type !== Blocks.ORDERED_LIST_OPEN,
         ));
         return {
-          node: new OrderedListNode(openToken, tokens[closeIndex], children),
+          node: new Blocks.OrderedListNode(
+            openToken,
+            tokens[closeIndex],
+            children,
+          ),
           nextIndex: closeIndex + 1,
         };
 
-      case LIST_ITEM_OPEN:
+      case Blocks.LIST_ITEM_OPEN:
         ({ children, nextIndex: closeIndex } = extractASTChildren(
           tokens,
           index + 1,
-          (i) => tokens[i].type !== LIST_ITEM_CLOSE,
+          (i) => tokens[i].type !== Blocks.LIST_ITEM_CLOSE,
         ));
         return {
-          node: new ListItemNode(openToken, tokens[closeIndex], children),
+          node: new Blocks.ListItemNode(
+            openToken,
+            tokens[closeIndex],
+            children,
+          ),
+          nextIndex: closeIndex + 1,
+        };
+
+      // Then, inline nodes
+      case Inlines.TEXT:
+        return {
+          node: new Inlines.TextNode(openToken),
+          nextIndex: index + 1,
+        };
+
+      case Inlines.CODE_INLINE:
+        return {
+          node: new Inlines.InlineCodeNode(openToken),
+          nextIndex: index + 1,
+        };
+
+      case Inlines.EM_OPEN:
+        ({ children, nextIndex: closeIndex } = extractASTChildren(
+          tokens,
+          index + 1,
+          (i) => tokens[i].type !== Inlines.EM_CLOSE,
+        ));
+        return {
+          node: new Inlines.EmphasisNode(
+            openToken,
+            tokens[closeIndex],
+            children,
+          ),
+          nextIndex: closeIndex + 1,
+        };
+
+      case Inlines.STRONG_OPEN:
+        ({ children, nextIndex: closeIndex } = extractASTChildren(
+          tokens,
+          index + 1,
+          (i) => tokens[i].type !== Inlines.STRONG_CLOSE,
+        ));
+        return {
+          node: new Inlines.StrongNode(openToken, tokens[closeIndex], children),
+          nextIndex: closeIndex + 1,
+        };
+
+      case Inlines.DEL_OPEN:
+      case Inlines.STRIKE_OPEN:
+        ({ children, nextIndex: closeIndex } = extractASTChildren(
+          tokens,
+          index + 1,
+          (i) =>
+            (openToken.type === Inlines.DEL_OPEN &&
+              tokens[i].type !== Inlines.DEL_CLOSE) ||
+            (openToken.type === Inlines.STRIKE_OPEN &&
+              tokens[i].type !== Inlines.STRIKE_CLOSE),
+        ));
+        return {
+          node: new Inlines.DelNode(openToken, tokens[closeIndex], children),
+          nextIndex: closeIndex + 1,
+        };
+
+      case Inlines.LINK_OPEN:
+        ({ children, nextIndex: closeIndex } = extractASTChildren(
+          tokens,
+          index + 1,
+          (i) => tokens[i].type !== Inlines.LINK_CLOSE,
+        ));
+        return {
+          node: new Inlines.LinkNode(openToken, tokens[closeIndex], children),
           nextIndex: closeIndex + 1,
         };
 
       // Fail on unknown tokens
       default:
-        throw `unknown token type: ${openToken.type}`;
+        throw `unknown or unsupported "open" token type: ${openToken.type} (html: ${openToken.tag})`;
     }
   }
 
   throw "extract failed";
+};
+
+export const extractAST = (tokens: MarkdownToken[]): ASTNode[] => {
+  const { children } = extractASTChildren(tokens, 0, (i) => i < tokens.length);
+  return children;
 };
 
 export const extractASTChildren = (
@@ -120,15 +203,11 @@ export const extractASTChildren = (
     }
     const { node, nextIndex } = extractASTNode(tokens, index);
     if (nextIndex <= index) {
+      console.error("bad node", node)
       throw "node extract did not move cursor forward";
     }
     children.push(node);
     index = nextIndex;
   }
   return { children, nextIndex: index };
-};
-
-export const extractAST = (tokens: MarkdownToken[]): ASTNode[] => {
-  const { children } = extractASTChildren(tokens, 0, (i) => i < tokens.length);
-  return children;
 };
