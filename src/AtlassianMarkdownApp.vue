@@ -32,8 +32,9 @@ watchEffect(() => {
   vuetifyTheme.global.name.value = currentThemeName.value;
 });
 
-watch(vuetifyTheme.global.name, (updatedVuetifyThemeName) => {
-  switch (updatedVuetifyThemeName) {
+
+watchEffect(() => {
+  switch (vuetifyTheme.global.name.value) {
     case "light":
       currentThemeName.value = "light";
       lightThemeCSS
