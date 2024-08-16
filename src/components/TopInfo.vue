@@ -2,10 +2,11 @@
 import {
   mdiChevronDown,
   mdiChevronUp,
-  mdiHome,
   mdiThemeLightDark,
+  mdiCheck,
+  mdiHome,
 } from "@mdi/js";
-import { mdiCheck } from "@mdi/js/commonjs/mdi";
+
 import { ref } from "vue";
 import { useTheme } from "vuetify";
 
@@ -26,7 +27,7 @@ console.log(mdiCheck);
         <VIcon color="success" :icon="mdiHome" />
       </template>
       <template #append>
-        <VBtn variant="text" :icon="mdiThemeLightDark" @click="toggleTheme"/>
+        <VBtn variant="text" :icon="mdiThemeLightDark" @click="toggleTheme" />
         <VBtn
           variant="text"
           :icon="showDetails ? mdiChevronUp : mdiChevronDown"

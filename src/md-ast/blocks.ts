@@ -28,6 +28,7 @@ export const ATLASSIAN_SUPPORTED_HIGHLIGHTS = [
   "groovy",
   "haskell",
   "html",
+  "java",
   "javascript",
   "js",
   "html",
@@ -62,7 +63,7 @@ export class CodeBlockNode extends SelfClosingNode {
       : "{code}";
 
   toAtlassian = () =>
-    `${this.atlassianCodeOpenTag()}\n${this.openToken.content.trimEnd()}\n{code}`;
+    `${this.atlassianCodeOpenTag()}\n${this.openToken.content.trimEnd()}\n{code}\n`;
   toHTML(): string {
     return `<code><pre>${this.openToken.content}</pre></code>`;
   }
@@ -86,7 +87,7 @@ export const PARAGRAPH_CLOSE = "paragraph_close";
 export class ParagraphNode extends ASTNode {
   checkOpen = [PARAGRAPH_OPEN];
   checkClose = [PARAGRAPH_CLOSE];
-  toAtlassian = () => `\n${this.contentsAtlassian()}\n`;
+  toAtlassian = () => `${this.contentsAtlassian()}\n`;
   toHTML = () => `<p>${this.contentsHTML()}</p>`;
 }
 
@@ -100,8 +101,10 @@ export const LIST_ITEM_CLOSE = "list_item_close";
 export class BulletListNode extends ASTNode {
   checkOpen = [BULLET_LIST_OPEN];
   checkClose = [BULLET_LIST_CLOSE];
-  toAtlassian(): string {
-    return "";
+  toAtlassian(state?: { listPrefix?: string }): string {
+    return this.contentsAtlassian(
+      { listPrefix: (state?.listPrefix ?? "") + "*" },
+    );
   }
   toHTML(): string {
     return `<ul>${this.contentsHTML()}</ul>`;
@@ -110,8 +113,10 @@ export class BulletListNode extends ASTNode {
 export class OrderedListNode extends ASTNode {
   checkOpen = [ORDERED_LIST_OPEN];
   checkClose = [ORDERED_LIST_CLOSE];
-  toAtlassian(): string {
-    return "";
+  toAtlassian(state?: { listPrefix?: string }): string {
+    return this.contentsAtlassian(
+      { listPrefix: (state?.listPrefix ?? "")  + "#"} ,
+    );
   }
   toHTML(): string {
     return `<ol>${this.contentsHTML()}</ol>`;
@@ -121,8 +126,11 @@ export class OrderedListNode extends ASTNode {
 export class ListItemNode extends ASTNode {
   checkOpen = [LIST_ITEM_OPEN];
   checkClose = [LIST_ITEM_CLOSE];
-  toAtlassian(): string {
-    return "";
+  toAtlassian(state?: { listPrefix?: string }): string {
+    if (!state?.listPrefix) {
+      throw "found list item with no parent list";
+    }
+    return `${state.listPrefix} ${this.contentsAtlassian(state)}`;
   }
   toHTML(): string {
     return `<li>${this.contentsHTML()}</li>`;
@@ -141,4 +149,16 @@ export class InlineContainerNode extends SelfClosingNode {
 
   toAtlassian = () => this.contentsAtlassian();
   toHTML = () => this.contentsHTML();
+}
+
+export const HEADING_OPEN = "heading_open";
+export const HEADING_CLOSE = "heading_close";
+
+export class HeadingNode extends ASTNode {
+  checkOpen = [HEADING_OPEN];
+  checkClose = [HEADING_CLOSE];
+
+  toAtlassian = () => `${this.openToken.tag}. ${this.contentsAtlassian()}\n`;
+  toHTML = () =>
+    `<${this.openToken.tag}>${this.contentsHTML()}</${this.closeToken?.tag}>`;
 }

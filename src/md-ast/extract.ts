@@ -65,6 +65,19 @@ export const extractASTNode = (
           nextIndex: closeIndex + 1,
         };
 
+      case Blocks.HEADING_OPEN:
+        ({ children, nextIndex: closeIndex } = extractASTChildren(
+          tokens,
+          index + 1,
+          (i) =>
+            tokens[i].type !== Blocks.HEADING_CLOSE ||
+            tokens[i].tag !== openToken.tag,
+        ));
+        return {
+          node: new Blocks.HeadingNode(openToken, tokens[closeIndex], children),
+          nextIndex: closeIndex + 1,
+        };
+
       case Blocks.BULLET_LIST_OPEN:
         ({ children, nextIndex: closeIndex } = extractASTChildren(
           tokens,
@@ -84,7 +97,7 @@ export const extractASTNode = (
         ({ children, nextIndex: closeIndex } = extractASTChildren(
           tokens,
           index + 1,
-          (i) => tokens[i].type !== Blocks.ORDERED_LIST_OPEN,
+          (i) => tokens[i].type !== Blocks.ORDERED_LIST_CLOSE,
         ));
         return {
           node: new Blocks.OrderedListNode(
@@ -120,6 +133,12 @@ export const extractASTNode = (
       case Inlines.CODE_INLINE:
         return {
           node: new Inlines.InlineCodeNode(openToken),
+          nextIndex: index + 1,
+        };
+
+      case Inlines.SOFT_BREAK:
+        return {
+          node: new Inlines.SoftBreakNode(openToken),
           nextIndex: index + 1,
         };
 
@@ -178,7 +197,7 @@ export const extractASTNode = (
 
       // Fail on unknown tokens
       default:
-        throw `unknown or unsupported "open" token type: ${openToken.type} (html: ${openToken.tag})`;
+        throw `unknown or unsupported "open" token type: ${openToken.type} (html: ${openToken.tag}) ${JSON.stringify(openToken)}`;
     }
   }
 
@@ -203,7 +222,7 @@ export const extractASTChildren = (
     }
     const { node, nextIndex } = extractASTNode(tokens, index);
     if (nextIndex <= index) {
-      console.error("bad node", node)
+      console.error("bad node", node);
       throw "node extract did not move cursor forward";
     }
     children.push(node);

@@ -1,6 +1,5 @@
 import { ASTNode, SelfClosingNode } from "./base";
 
-
 export const TEXT = "text";
 
 export class TextNode extends SelfClosingNode {
@@ -51,10 +50,8 @@ export class LinkNode extends ASTNode {
   href = () => this.openToken.attrGet("href") ?? "";
   escapedHref = () => new URL(this.href()).href;
 
-  toHTML = () =>
-    `<a href="${this.escapedHref()}">${this.contentsHTML()}</a>`;
-  toAtlassian = () =>
-    `[${this.contentsAtlassian()}|${this.escapedHref()}]`
+  toHTML = () => `<a href="${this.escapedHref()}">${this.contentsHTML()}</a>`;
+  toAtlassian = () => `[${this.contentsAtlassian()}|${this.escapedHref()}]`;
 }
 
 export const STRIKE_OPEN = "s_open";
@@ -66,8 +63,15 @@ export class DelNode extends ASTNode {
   checkOpen = [STRIKE_OPEN, DEL_OPEN];
   checkClose = [STRIKE_CLOSE, DEL_CLOSE];
 
-  toHTML = () =>
-    `<del>${this.contentsHTML()}</del>`;
-  toAtlassian = () =>
-    `-${this.contentsAtlassian()}-`
+  toHTML = () => `<del>${this.contentsHTML()}</del>`;
+  toAtlassian = () => `-${this.contentsAtlassian()}-`;
+}
+
+export const SOFT_BREAK = "softbreak";
+
+export class SoftBreakNode extends SelfClosingNode {
+  checkOpen = [SOFT_BREAK];
+
+  toHTML = () => "<br />";
+  toAtlassian = () => "\n";
 }

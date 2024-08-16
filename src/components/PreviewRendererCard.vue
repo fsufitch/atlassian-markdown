@@ -1,18 +1,7 @@
 <script setup lang="ts">
 import { ref, watchEffect } from "vue";
 
-const MD = import("markdown-it")
-  .then((it) => it.default)
-  .then(
-    (MarkdownIt) =>
-      new MarkdownIt({
-        breaks: false,
-        highlight: null,
-        html: false,
-        linkify: true,
-        xhtmlOut: true,
-      }),
-  );
+const getMarkdownIt = () => import("markdown-it").then((it) => it.default);
 
 const props = defineProps<{ markdown: string }>();
 
@@ -20,14 +9,23 @@ const renderedHTML = ref<string>("");
 const loading = ref<boolean>(true);
 const error = ref<unknown>(null);
 
-watchEffect(() => {
+watchEffect(async () => {
+  const MarkdownIt = await getMarkdownIt();
+  const MD = new MarkdownIt({
+    breaks: false,
+    highlight: null,
+    html: false,
+    linkify: true,
+    xhtmlOut: true,
+  });
   loading.value = true;
   const inputMarkdown = props.markdown;
-  MD.then((MD) => {;
+  try {
     renderedHTML.value = MD.render(inputMarkdown, {});
-  })
-    .catch((err) => (error.value = err))
-    .then(() => (loading.value = false));
+  } catch (err) {
+    error.value = err;
+  }
+  loading.value = false;
 });
 </script>
 
@@ -41,6 +39,8 @@ watchEffect(() => {
     <VCardText v-if="loading">
       <VSkeletonLoader type="paragraph" />
     </VCardText>
-    <VCardText v-if="!error && !loading"><div v-html="renderedHTML" /></VCardText>
+    <VCardText v-if="!error && !loading"
+      ><div v-html="renderedHTML"
+    /></VCardText>
   </VCard>
 </template>

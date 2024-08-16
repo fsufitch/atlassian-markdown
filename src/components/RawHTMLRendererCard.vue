@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watchEffect } from "vue";
 
-import MarkdownIt from "markdown-it";
+const getMarkdownIt = () => import('markdown-it').then(it => it.default);
 
 import hljs from "highlight.js/lib/core";
 import { mdiCloseCircle } from "@mdi/js";
@@ -13,12 +13,14 @@ const hljsXML = import("highlight.js/lib/languages/xml").then(
 
 const props = defineProps<{ markdown: string }>();
 
+
 const renderedHTML = ref<string>("");
 const highlightedHTML = ref<string>("");
 const loading = ref<boolean>(true);
 const error = ref<unknown>(null);
 
 watchEffect(async () => {
+  const MarkdownIt = await getMarkdownIt();
   const MD = new MarkdownIt({
     breaks: false,
     highlight: null,

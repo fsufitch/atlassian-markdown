@@ -1,9 +1,9 @@
 import type MarkdownToken from "markdown-it/lib/token.mjs";
 
 export interface ASTJSON {
-  open: MarkdownToken;
-  close?: MarkdownToken;
+  type: string;
   children?: ASTJSON[];
+  content?: string;
 }
 
 export abstract class ASTNode {
@@ -26,16 +26,19 @@ export abstract class ASTNode {
   }
 
   contentsHTML = () => (this.children ?? []).map((it) => it.toHTML()).join("");
-  contentsAtlassian = () =>
-    (this.children ?? []).map((it) => it.toAtlassian()).join("");
+  contentsAtlassian = (state?: unknown) =>
+    (this.children ?? []).map((it) => it.toAtlassian(state)).join("");
 
   abstract toHTML(): string;
-  abstract toAtlassian(): string;
-  toJSON = (): ASTJSON => ({
-    open: this.openToken,
-    close: this.closeToken,
-    children: this.children?.map((ch) => ch.toJSON()),
-  });
+  abstract toAtlassian(state?: unknown): string;
+
+  toJSON(): ASTJSON {
+    return {
+      type: this.openToken.type,
+      children: this.children?.map((ch) => ch.toJSON()),
+      content: this.openToken.content || undefined,
+    };
+  }
 }
 
 export abstract class SelfClosingNode extends ASTNode {
@@ -47,4 +50,3 @@ export abstract class SelfClosingNode extends ASTNode {
     return this.openToken;
   }
 }
-
