@@ -7,8 +7,8 @@ import { parseAST } from "./md-ast/parse";
 const YAML = import("yaml").then((it) => it.default);
 
 export const useAST = (markdownRef: MaybeRefOrGetter<string>) => {
-  const resultAST = ref<ASTNode[]>([]);
-  const resultError = ref<string>("");
+  const resultAST: Ref<ASTNode[]> = ref<ASTNode[]>([]);
+  const resultError: Ref<string> = ref<string>("");
 
   const recomputeAST = async (markdown: string) => {
     try {

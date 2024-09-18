@@ -19,9 +19,8 @@ watchEffect(async () => {
     xhtmlOut: true,
   });
   loading.value = true;
-  const inputMarkdown = props.markdown;
   try {
-    renderedHTML.value = MD.render(inputMarkdown, {});
+    renderedHTML.value = MD.render(props.markdown, {});
   } catch (err) {
     error.value = err;
   }

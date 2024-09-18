@@ -1,72 +1,38 @@
 <script setup lang="ts">
-import { ref, watchEffect } from "vue";
-
-const getMarkdownIt = () => import('markdown-it').then(it => it.default);
-
-import hljs from "highlight.js/lib/core";
+import { computed } from "vue";
 import { mdiCloseCircle } from "@mdi/js";
 import CopyButton from "@app/components/CopyButton.vue";
-const hljsXML = import("highlight.js/lib/languages/xml").then(
-  (it) => it.default,
-);
 
+import { useAST } from "@app/ast-rendering";
+import { useHighlighted } from "@app/highlighting";
 
 const props = defineProps<{ markdown: string }>();
+const markdownRef = computed(() => props.markdown);
 
+const { ast, error: astError } = useAST(markdownRef);
 
-const renderedHTML = ref<string>("");
-const highlightedHTML = ref<string>("");
-const loading = ref<boolean>(true);
-const error = ref<unknown>(null);
+const renderedHTML = computed(() => ast.value.map(node => node.toHTML()).join("\n"));
+const highlightedHTML = useHighlighted(renderedHTML, "xml");
 
-watchEffect(async () => {
-  const MarkdownIt = await getMarkdownIt();
-  const MD = new MarkdownIt({
-    breaks: false,
-    highlight: null,
-    html: false,
-    linkify: false,
-    typographer: false,
-    xhtmlOut: true,
-  });
-  loading.value = true;
-
-  try {
-    renderedHTML.value = MD.render(props.markdown, {});
-  } catch (err) {
-    error.value = err;
-  }
-
-  hljs.registerLanguage("html", await hljsXML);
-  highlightedHTML.value = hljs.highlight(renderedHTML.value, {
-    language: "html",
-  }).value;
-
-  loading.value = false;
-});
+const error = computed(() => astError || "");
 </script>
 
 <template>
-  <VCard style="min-height: 10em">
+  <VCard style="min-height: 10em" variant="elevated">
     <VSheet class="float-right ma-2">
-      <CopyButton :copyText="renderedHTML" />
+      <VRow>
+        <VCol v-if="!error.value">
+          <CopyButton :copyText="renderedHTML" />
+        </VCol>
+      </VRow>
     </VSheet>
 
-    <VCardText v-if="error">
-      <code>
-        <pre>{{ error }}</pre>
-      </code>
-    </VCardText>
-    <VCardText v-if="loading">
-      <VSkeletonLoader type="paragraph" />
-    </VCardText>
     <VCardText>
-      <VSkeletonLoader v-if="loading" type="text" />
-      <VAlert v-if="error" :icon="mdiCloseCircle" color="error">
+      <VAlert v-if="error.value" :icon="mdiCloseCircle" color="error">
         <strong>ERROR:</strong> {{ error }}
       </VAlert>
-      <code v-if="!error && !loading">
-        <pre v-html="highlightedHTML || renderedHTML" />
+      <code>
+        <pre v-if="!error.value" v-html="highlightedHTML"></pre>
       </code>
     </VCardText>
   </VCard>
