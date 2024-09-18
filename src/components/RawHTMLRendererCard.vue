@@ -11,7 +11,9 @@ const markdownRef = computed(() => props.markdown);
 
 const { ast, error: astError } = useAST(markdownRef);
 
-const renderedHTML = computed(() => ast.value.map(node => node.toHTML()).join("\n"));
+const renderedHTML = computed(() =>
+  ast.value.map((node) => node.toHTML()).join("\n"),
+);
 const highlightedHTML = useHighlighted(renderedHTML, "xml");
 
 const error = computed(() => astError || "");

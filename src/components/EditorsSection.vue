@@ -55,8 +55,8 @@ watchEffect(() => {
     <VCol cols="12" lg="6" class="d-flex flex-column">
       <VTabs v-model="activeTab" direction="horizontal">
         <VTab value="preview"> Preview </VTab>
+        <VTab value="html"> HTML </VTab>
         <VTab value="atlassian"> Atlassian </VTab>
-        <VTab value="html"> Raw HTML </VTab>
         <VTab value="ast"> AST </VTab>
       </VTabs>
 
