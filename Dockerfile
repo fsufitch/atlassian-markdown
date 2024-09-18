@@ -20,7 +20,6 @@ COPY --from=builder /app/dist /dist
 FROM joseluisq/static-web-server:2 AS webserver
 
 COPY --from=dist /dist /dist
-COPY webserver-config.toml /webserver-config.toml
 
 # See: https://static-web-server.net/configuration/environment-variables/
 ENV SERVER_ROOT /dist

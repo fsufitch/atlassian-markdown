@@ -5,7 +5,7 @@
     docker build -t atlassian-markdown .
     docker run --rm -p 8080:80 atlassian-markdown
 
-Then, open http://localhost:8080
+Then, open <http://localhost:8080>.
 
 ## Run Natively
 
